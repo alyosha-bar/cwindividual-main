@@ -104,7 +104,6 @@ def create_workout(request):
         plan.save()
 
 
-
     return JsonResponse({
         "message": "sup dude"
     })
