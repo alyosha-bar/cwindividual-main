@@ -22,7 +22,9 @@
 
         <!-- Button trigger modal -->
         <div class="d-flex justify-content-center gap-3 py-3">
-            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exerciseModal">Add Exercise</button>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exerciseModal">
+            Add Exercise
+            </button>
             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">Add Workout</button>
         </div>
 
@@ -172,6 +174,11 @@ export default {
         },
     },
     methods: {
+        handleExerciseAdded(exercise) {
+            // Handle the new exercise data
+            console.log("Exercise Added:", exercise);
+            // For example, add it to a list of exercises or send it to the server
+        },
         addExercise(exercise) {
             if (!this.exercises.includes(exercise.id)) {
                 this.exercises.push(exercise.id);
