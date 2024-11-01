@@ -1,4 +1,7 @@
 <template>
+
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exerciseModal"> Add Exercise </button>
+
     <div class="modal fade" id="exerciseModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
@@ -7,7 +10,7 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body">
-            <form @submit.prevent="createExercise" class="container p-4 border rounded shadow-sm">
+            <form @submit.prevent="createExercise" class="container p-4 border rounded shadow-sm">   
               <div class="mb-3">
                 <label for="name" class="form-label">Name:</label>
                 <input v-model="exName" type="text" name="name" class="form-control" placeholder="Enter exercise name" required />

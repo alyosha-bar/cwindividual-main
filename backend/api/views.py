@@ -39,22 +39,27 @@ def all_workouts(request):
     #         "date": workout.date.strftime("%Y-%m-%d"),  # Convert date to string
     #         "exercises": exercises_data
     #     })
+    if request.method == "GET":
+        workouts = Workout.objects.all()
 
-    workouts = Workout.objects.all()
+        workout_data = [{
+                "id": workout.id,
+                "name": workout.name,
+                "description": workout.description,
+                "date": workout.date,
+            }
+            for workout in workouts
+        ]
 
-    workout_data = [{
-            "id": workout.id,
-            "name": workout.name,
-            "description": workout.description,
-            "date": workout.date,
-        }
-        for workout in workouts
-    ]
-
-    # Return serialized data as JSON
-    return JsonResponse({
-        "workouts": workout_data
-    })
+        # Return serialized data as JSON
+        return JsonResponse({
+            "workouts": workout_data
+        })
+    if request.method == "DELETE":
+        print("Deleting workout")
+        return JsonResponse({
+            "message": "Deleted Workout."
+        })
 
 def all_exercises(request):
     exercises = Exercise.objects.all()
