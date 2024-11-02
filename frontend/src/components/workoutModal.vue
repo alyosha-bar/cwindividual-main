@@ -105,7 +105,7 @@
                     exercise.name.toLowerCase().includes(this.searchQuery.toLowerCase())
                 );
             },
-        },
+        },   
         methods: {
             handleExerciseAdded(exercise) {
                 // Handle the new exercise data
