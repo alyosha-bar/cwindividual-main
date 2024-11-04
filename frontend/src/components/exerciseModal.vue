@@ -64,7 +64,7 @@ export default {
                 body: JSON.stringify({ body })
             };
 
-            const response = await fetch('http://localhost:8000/api/addexercise', requestOptions);
+            const response = await fetch('http://localhost:8000/api/exercises', requestOptions);
 
             if (!response.ok) {
                 throw new Error("Error occurred.");

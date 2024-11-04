@@ -47,6 +47,7 @@ def all_workouts(request):
                 "name": workout.name,
                 "description": workout.description,
                 "date": workout.date,
+                "completed": workout.completed
             }
             for workout in workouts
         ]
@@ -57,22 +58,72 @@ def all_workouts(request):
         })
     if request.method == "DELETE":
         print("Deleting workout")
+
+        data = json.loads(request.body)
+        workout_id = data["body"].get("id")
+
+        # delete workout on ID
+        workout = get_object_or_404(Workout, id=workout_id)
+        workout.delete()
+
         return JsonResponse({
             "message": "Deleted Workout."
         })
+    if request.method == "PUT":
+        data = json.loads(request.body)
+        
+
+        workout_id = data["body"].get("id")
+        # Fetch the workout instance by its ID
+        workout = get_object_or_404(Workout, id=workout_id)
+        
+        # Flip the completed status
+        workout.completed = not workout.completed
+        
+        # Save the changes to the database
+        workout.save()
+        
+        # Return a JSON response with the new status
+        return JsonResponse({"completed": workout.completed})
+
+
 
 def all_exercises(request):
-    exercises = Exercise.objects.all()
-    exercise_data = [
-        {
-            "id": ex.id, 
-            "name": ex.name,
-            "description": ex.description,
-            "weight": ex.weight,
-            "level": ex.difficuly_rating
-            } 
-        for ex in exercises]
-    return JsonResponse({"exercises": exercise_data})
+    if request.method == "GET":
+        exercises = Exercise.objects.all()
+        exercise_data = [
+            {
+                "id": ex.id, 
+                "name": ex.name,
+                "description": ex.description,
+                "weight": ex.weight,
+                "level": ex.difficuly_rating
+                } 
+            for ex in exercises]
+        return JsonResponse({"exercises": exercise_data})
+    
+
+    
+    if request.method == "DELETE":
+        print("Deleting Exercise")
+        return
+    if request.method == "PUT":
+        print("Updating Exercise")
+        return
+    if request.method == "POST":
+        data = json.loads(request.body)
+        name = data["body"].get("name")
+        description = data["body"].get("description")
+        weight = data["body"].get("weight")
+        diff = data["body"].get("difficulty")
+
+        # add into db - exercises model
+        exercise = Exercise(name=name, description=description, weight=weight, difficuly_rating=Exercise.DifficultyLevel.MEDIUM)
+        exercise.save()
+        return JsonResponse({
+            "message": "exercise added."
+        })
+
 
 def create_workout(request):
     # get data from req.body
@@ -111,28 +162,4 @@ def create_workout(request):
 
     return JsonResponse({
         "message": "sup dude"
-    })
-
-def create_exercise(request):
-    # get data from req.body
-    print("Adding Data.")
-
-    if request.method == "POST":
-        data = json.loads(request.body)
-        name = data["body"].get("name")
-        description = data["body"].get("description")
-        weight = data["body"].get("weight")
-        diff = data["body"].get("difficulty")
-
-    print(name)
-    print(description)
-    print(weight)
-    print(diff)
-
-    # add into db - exercises model
-    exercise = Exercise(name=name, description=description, weight=weight, difficuly_rating=Exercise.DifficultyLevel.MEDIUM)
-    exercise.save()
-
-    return JsonResponse({
-        "message": "exercise added."
     })

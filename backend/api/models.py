@@ -21,6 +21,7 @@ class Workout(models.Model):
     description = models.TextField()
     date = models.DateField()
     exercises = models.ManyToManyField(Exercise, through="Plan")
+    completed = models.BooleanField(default=False)
 
 
 class Plan(models.Model):
