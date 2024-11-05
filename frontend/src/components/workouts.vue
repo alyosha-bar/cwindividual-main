@@ -5,7 +5,7 @@
                 <h3>{{ workout.name }}</h3>
                 <p>{{ workout.description }}</p>
                 <div class="d-flex align-items-center justify-content-between border p-3 rounded">
-                    <div class="d-flex flex-column">
+                    <div class="d-flex align-items-center justify-content-between w-50">
                         <p class="mb-1"><strong>Date:</strong> {{ new Date(workout.date).toLocaleDateString() }}</p>
                         <span
                         v-if="workout.completed"
@@ -33,13 +33,21 @@
     <div v-else>
         <p>No workouts available.</p>
     </div>
+    <workoutUpdate :show="showModal" :id="selectedId" @close="showModal = false"></workoutUpdate>
 </template>
 
 <script>
+import workoutUpdate from './workoutUpdate.vue';
+
 export default {
+    components: {
+        workoutUpdate
+    },
     data() {
         return {
             workouts: [],
+            showModal: false,
+            selectId: -1,
         };
     },
     methods: {
@@ -84,7 +92,8 @@ export default {
 
         },
         openUpdateScreen(id) {
-            console.log("Opening Update Screen.")
+            this.showModal = true;
+            this.selectedId = id;
         },
         async deleteWorkout(id) {
             // are you sure dialog

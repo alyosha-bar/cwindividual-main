@@ -11,9 +11,6 @@
                 <li class="nav-item" @click="activeTab = 2">
                     <a class="nav-link" :class="{ active: activeTab === 2 }" href="#"> Exercises </a>
                 </li>
-                <li class="nav-item" @click="activeTab = 3">
-                    <a class="nav-link" :class="{ active: activeTab === 3 }" href="#"> Other </a>
-                </li>
             </ul>
 
             <!-- Tab Content -->
@@ -28,14 +25,10 @@
 
                 <div v-if="activeTab === 2" class="tab-pane fade show active">
                     <h3> Exercises List </h3>
+                    <exercises></exercises>
                     <div class="d-flex justify-content-center gap-3 py-3">
                         <exerciseModal></exerciseModal>
                     </div>
-                </div>
-
-                <div v-if="activeTab === 3" class="tab-pane fade show active">
-                    <h3>Tab 3 Content</h3>
-                    <div>This is some content for Tab 3.</div>
                 </div>
             </div>
         </div>
@@ -48,11 +41,13 @@ import exerciseModal from './components/exerciseModal.vue';
 import workoutModal from './components/workoutModal.vue';
 import Workouts from './components/workouts.vue';
 import workouts from './components/workouts.vue';
+import exercises from './components/exercises.vue';
 export default {
     components: {
         exerciseModal,
         workoutModal,
-        workouts
+        workouts,
+        exercises
     },
     data() {
         return {

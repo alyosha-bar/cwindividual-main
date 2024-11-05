@@ -93,7 +93,7 @@
                 name: "",
                 description: "",
                 date: "",
-                exercises: [], // Ensure exercises remains an array
+                exercises: [],
                 allExercises: [],
                 searchQuery: "",
                 selectedExercises: []

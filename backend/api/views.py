@@ -69,6 +69,9 @@ def all_workouts(request):
         return JsonResponse({
             "message": "Deleted Workout."
         })
+    
+    # need to have a PUT request for two things lol --> marking completed and editing information.
+    # make use of flag maybe to differentiate between use cases
     if request.method == "PUT":
         data = json.loads(request.body)
         
@@ -106,10 +109,63 @@ def all_exercises(request):
     
     if request.method == "DELETE":
         print("Deleting Exercise")
-        return
+
+        data = json.loads(request.body)
+        exercise_id = data["body"].get("id")
+
+        # delete workout on ID
+        exercise = get_object_or_404(Exercise, id=exercise_id)
+        exercise.delete()
+
+        return JsonResponse({"message": "Exercise Deleted."})
+    
+
     if request.method == "PUT":
         print("Updating Exercise")
-        return
+        
+        data = json.loads(request.body)
+        id = data["body"].get("id")
+        name = data["body"].get("name")
+        description = data["body"].get("description")
+        weight = data["body"].get("weight")
+        diff = data["body"].get("difficulty")
+
+
+        #debug
+        print(name)
+        print(description)
+        print(weight)
+        print(diff)
+
+
+
+        # fetch exercise with that id.
+        exercise = get_object_or_404(Exercise, id=id)
+
+        # update the correct fields --> if empty keep the same?
+        if name != "":
+            print("changing name.")
+            exercise.name = name
+            exercise.save()
+
+        if description != "":
+            exercise.description = description
+            exercise.save()
+
+        if weight != None:
+            exercise.weight = weight
+            exercise.save()
+
+        if diff != None:
+            exercise.difficuly_rating = diff
+            exercise.save()
+
+        return JsonResponse({
+            "message": "Updated Exercise"
+        })
+    
+
+
     if request.method == "POST":
         data = json.loads(request.body)
         name = data["body"].get("name")
