@@ -11,51 +11,48 @@ def test_api_view(request):
 
 
 def all_workouts(request):
-    # Query all workouts
-    # workouts = Workout.objects.all()
 
-    # # Serialize workouts into a list of dictionaries
-    # workouts_data = []
-    # for workout in workouts:
-    #     # Gather the exercises associated with each workout
-    #     exercises_data = []
-    #     plans = Plan.objects.filter(workout=workout)  # Get all plans for the current workout
-
-    #     for plan in plans:
-    #         exercises_data.append({
-    #             "exercise_id": plan.exercise.id,
-    #             "exercise_name": plan.exercise.name,
-    #             "exercise_description": plan.exercise.description,
-    #             "difficulty_rating": plan.exercise.difficuly_rating,
-    #             "weight": plan.exercise.weight,
-    #             "reps": plan.reps,
-    #             "sets": plan.sets,
-    #         })
-
-    #     workouts_data.append({
-    #         "id": workout.id,
-    #         "name": workout.name,
-    #         "description": workout.description,
-    #         "date": workout.date.strftime("%Y-%m-%d"),  # Convert date to string
-    #         "exercises": exercises_data
-    #     })
     if request.method == "GET":
+        # Retrieve all workouts
         workouts = Workout.objects.all()
+        
+        # Build a list to hold workout data
+        workout_details = []
+        
+        # Loop through each workout to collect details
+        for workout in workouts:
+            # Query Plan to get each exercise linked to this workout
+            plans = Plan.objects.filter(workout=workout).select_related('exercise')
+            
+            # Collect each exercise's details from Plan and Exercise
+            exercises_with_details = [
+                {
+                    "id": plan.exercise.id,
+                    "name": plan.exercise.name,
+                    "description": plan.exercise.description,
+                    "difficulty_rating": plan.exercise.difficuly_rating,
+                    "weight": plan.exercise.weight,
+                    "reps": plan.reps,
+                    "sets": plan.sets
+                }
+                for plan in plans
+            ]
+            
+            # Add workout data and its exercises to the list
+            workout_details.append({
+                "workout_id": workout.id,
+                "workout_name": workout.name,
+                "workout_description": workout.description,
+                "date": workout.date.isoformat(),  # Ensure date is JSON serializable
+                "completed": workout.completed,
+                "exercises": exercises_with_details
+            })
+        
+        # Return JSON response
+        return JsonResponse(workout_details, safe=False)
 
-        workout_data = [{
-                "id": workout.id,
-                "name": workout.name,
-                "description": workout.description,
-                "date": workout.date,
-                "completed": workout.completed
-            }
-            for workout in workouts
-        ]
+    
 
-        # Return serialized data as JSON
-        return JsonResponse({
-            "workouts": workout_data
-        })
     if request.method == "DELETE":
         print("Deleting workout")
 
@@ -75,19 +72,52 @@ def all_workouts(request):
     if request.method == "PUT":
         data = json.loads(request.body)
         
+        if data["body"].get("full_flag") == False:
+            workout_id = data["body"].get("id")
+            # Fetch the workout instance by its ID
+            workout = get_object_or_404(Workout, id=workout_id)
+            
+            # Flip the completed status
+            workout.completed = not workout.completed
+            
+            # Save the changes to the database
+            workout.save()
+            
+            # Return a JSON response with the new status
+            return JsonResponse({"completed": workout.completed})
+        else:
+            workout_id = data["body"].get("workoutId")
+            name = data["body"].get("name")
+            description = data["body"].get("description")
+            date_input = data.get("date")
+            date = date_input if date_input else None
+            exercises = data["body"].get("exercises")
 
-        workout_id = data["body"].get("id")
-        # Fetch the workout instance by its ID
-        workout = get_object_or_404(Workout, id=workout_id)
-        
-        # Flip the completed status
-        workout.completed = not workout.completed
-        
-        # Save the changes to the database
-        workout.save()
-        
-        # Return a JSON response with the new status
-        return JsonResponse({"completed": workout.completed})
+            workout = get_object_or_404(Workout, id=workout_id)
+
+            print(exercises)
+
+            if name != "":
+                workout.name = name
+                workout.save()
+            
+            if description != "":
+                workout.description = description
+                workout.save()
+
+            if date != None:
+                workout.date = date
+                workout.save()
+
+            
+            for exercise in exercises:
+                e = get_object_or_404(Exercise, id=exercise['id'])
+                plan = Plan.objects.create(workout=workout, exercise=e, reps=10, sets=3)
+                plan.save()
+
+            return JsonResponse({
+                "Message": "Workout updated."
+            })
 
 
 
@@ -181,6 +211,7 @@ def all_exercises(request):
         })
 
 
+# move to POST in all workouts
 def create_workout(request):
     # get data from req.body
     print("Adding Data.")
@@ -191,8 +222,6 @@ def create_workout(request):
         description = data["body"].get("description")
         date = data["body"].get("date")
         exercises = data["body"].get("exercises") # contains ids of the associated exercises
-
-        # still need a way to make the reps and sets FOR EACH EXERCISE
 
     print(name)
     print(description)
@@ -219,3 +248,57 @@ def create_workout(request):
     return JsonResponse({
         "message": "sup dude"
     })
+
+
+def updatePlan(request):
+
+    if request.method == "GET":
+        return JsonResponse({
+            "message": "YO"
+        })
+
+    if request.method == "PUT":
+        # decode body
+        data = json.loads(request.body)
+        workout_id = data["body"].get("workout_id")
+        exercise_id = data["body"].get("exercise_id")
+        newReps = data["body"].get("newReps")
+        newSets = data["body"].get("newSets")
+
+        # fetch workout by id
+        workout = get_object_or_404(Workout, id=workout_id)
+        
+        #fetch exerise by id
+        print(exercise_id)
+        exercise = get_object_or_404(Exercise, id=exercise_id)
+
+        # fetch plan
+        plan = Plan.objects.get(workout=workout, exercise=exercise)
+
+        if newReps != None:
+            plan.reps = newReps
+            plan.save()
+
+        if newSets != None:
+            plan.sets = newSets
+            plan.save()
+
+        return JsonResponse({
+            "Message": "Workout Plan Updated."
+        })
+
+    if request.method == "DELETE":
+        print("Deleting Exercise")
+        data = json.loads(request.body)
+        workout_id = data["body"].get("workout_id")
+        exercise_id = data["body"].get("exercise_id")
+
+        print(workout_id)
+        print(exercise_id)
+
+        plan = Plan.objects.filter(workout_id=workout_id, exercise_id=exercise_id)
+        plan.delete()
+
+        return JsonResponse({
+            "message": "Deleted Successfully."
+        })

@@ -1,30 +1,56 @@
 <template>
     <div v-if="workouts.length > 0" class="">
         <ul class="d-flex flex-row flex-wrap py-4">
-            <li v-for="workout in workouts" :key="workout.id" class="list-group-item border flex-fill m-2 p-4" style="min-width: 250px;">
-                <h3>{{ workout.name }}</h3>
-                <p>{{ workout.description }}</p>
+            <li v-for="workout in workouts" :key="workout.workout_id" class="list-group-item border flex-fill m-2 p-4" style="min-width: 250px;">
+                <h3>{{ workout.workout_name }}</h3>
+                <p>{{ workout.workout_description }}</p>
+                <div class="mt-3">
+                        <h5 class="text-muted">Exercises</h5>
+                        <ul class="list-group mb-3">
+                            <li
+                                v-for="exercise in workout.exercises"
+                                :key="exercise.id"
+                                class="list-group-item px-3 py-2"
+                            >
+                                <div class="d-flex justify-content-between">
+                                <div>
+                                    <strong>{{ exercise.name }}</strong> - {{ exercise.description }}
+                                    <p class="mb-1"><strong>Difficulty:</strong> {{ exercise.difficulty_rating }}</p>
+                                </div>
+                                <div>   
+                                    <div class="text-end px-4 py-2 rounded hover-effect" @click="openRepsUpdate(workout.workout_id, exercise.id, exercise.name, workout.name)">
+                                        <p class="mb-1"><strong>Reps:</strong> {{ exercise.reps }}</p>
+                                        <p class="mb-1"><strong>Sets:</strong> {{ exercise.sets }}</p>
+                                    </div>
+                                    <button @click="deleteExercise(workout.workout_id, exercise.id)" class="w-100 btn btn-danger my-2"> Delete </button>
+                                </div>
+                                
+                                </div>
+                            </li>
+                            </ul>
+                    </div>
                 <div class="d-flex align-items-center justify-content-between border p-3 rounded">
                     <div class="d-flex align-items-center justify-content-between w-50">
                         <p class="mb-1"><strong>Date:</strong> {{ new Date(workout.date).toLocaleDateString() }}</p>
                         <span
                         v-if="workout.completed"
                         class="badge bg-success p-2"
-                        @click="completed(workout.id)"
+                        @click="completed(workout.workout_id)"
                         >
                         Completed
                         </span>
                         <span
                         v-else
                         class="badge bg-danger p-2"
-                        @click="completed(workout.id)"
+                        @click="completed(workout.workout_id)"
                         >
                         Not Completed
                         </span>
                     </div>
                     <div>
-                        <button @click="openUpdateScreen(id)" class="btn btn-amber btn-sm m-2">Update</button>
-                        <button @click="deleteWorkout(workout.id)" class="btn btn-danger btn-sm m-2">Delete</button>
+                        <button @click="openUpdateScreen(workout.workout_id, workout.exercises)" class="btn btn-amber btn-sm m-2">Update</button>
+                        <button @click="deleteWorkout(workout.workout_id)" class="btn btn-danger btn-sm m-2">Delete</button>
+                        <button @click="console.log(workout)" class="btn btn-danger btn-sm m-2">Show</button>
                     </div>  
                 </div>
             </li>
@@ -33,21 +59,40 @@
     <div v-else>
         <p>No workouts available.</p>
     </div>
-    <workoutUpdate :show="showModal" :id="selectedId" @close="showModal = false"></workoutUpdate>
+    <workoutUpdate 
+        :show="showModal" 
+        :id="selectedWorkoutId"
+        :selectedExercises="selectedExercises" 
+        @close="showModal = false"></workoutUpdate>
+    <repsUpdate 
+        :show="showRepsModal" 
+        :workout_id="selectId" 
+        :ex_id="exId" 
+        :exName="exName"
+        :workoutName="workoutName"
+        @close="showRepsModal = false"></repsUpdate>
 </template>
 
 <script>
 import workoutUpdate from './workoutUpdate.vue';
+import repsUpdate from './repsUpdate.vue';
 
 export default {
     components: {
-        workoutUpdate
+        workoutUpdate,
+        repsUpdate
     },
     data() {
         return {
             workouts: [],
             showModal: false,
             selectId: -1,
+            showRepsModal: false,
+            exId: -1,
+            exName: "",
+            workoutName: "",
+            selectedWorkoutId: null,
+            selectedExercises: []
         };
     },
     methods: {
@@ -77,7 +122,7 @@ export default {
                 console.log("Completed status updated:", data);
 
                 this.workouts.forEach((workout) => {
-                    if (workout.id === id) {
+                    if (workout.workout_id === id) {
                         workout.completed = data.completed;
                     }
                 });
@@ -91,9 +136,48 @@ export default {
             }
 
         },
-        openUpdateScreen(id) {
-            this.showModal = true;
-            this.selectedId = id;
+        async deleteExercise(workout_id, exercise_id) {
+
+            console.log(exercise_id)
+
+            const body = {
+                workout_id: workout_id,
+                exercise_id: exercise_id,
+            }
+
+
+            const requestOptions = {
+                method: "DELETE",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({body})
+            }
+
+            const response = await fetch('http://localhost:8000/api/plan', requestOptions)
+
+            if (!response.ok) {
+                throw new Error("Error Deleting Exercise")
+            }
+
+            const message = response.json()
+            return message
+
+        },
+        openUpdateScreen(id, exercises) {
+            // this.showModal = true;
+            // this.selectedWorkoutId = id;
+            // this.selectedExercises = exercises
+
+            console.log('Opening Update Screen')
+        },
+        openRepsUpdate(workout_id, exId, exName, workoutName) {
+            console.log(workout_id)
+            console.log(exId)
+
+            this.selectId = workout_id
+            this.exId = exId
+            this.exName = exName
+            this.workoutName = workoutName
+            this.showRepsModal = true
         },
         async deleteWorkout(id) {
             // are you sure dialog
@@ -126,11 +210,17 @@ export default {
         }
     },
     async mounted() {
+
+        // must fetch better --> all workouts with exercises - DONE
+
+        // pass into workoutUpdate as props
+
         try {
             const workoutResponse = await fetch('http://localhost:8000/api/workouts');
             if (!workoutResponse.ok) throw new Error(`HTTP error! status: ${workoutResponse.status}`);
             const workoutData = await workoutResponse.json();
-            this.workouts = workoutData.workouts || [];
+            console.log(workoutData)
+            this.workouts = workoutData || [];
         } catch (error) {
             console.error("Error fetching workouts:", error);
         }
@@ -148,5 +238,15 @@ export default {
         background-color: #ffb300;
         color: white;
     }
+
+    .hover-effect {
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+
+    .hover-effect:hover {
+        background-color: rgba(0, 123, 255, 0.1); /* Light blue background on hover */
+    }
+
 
 </style>
