@@ -77,7 +77,6 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button @click="console.log(exercises)"> All </button>
                 </div>
                 </div>
             </div>

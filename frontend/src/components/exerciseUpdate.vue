@@ -26,7 +26,6 @@
               </div>
               <button type="submit" class="btn btn-primary w-100">Update Exercise</button>
             </form>
-            <button @click="console.log(id)"> Show ID </button>
           </div>
         </div>
       </div>

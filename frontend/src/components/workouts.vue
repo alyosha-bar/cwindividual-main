@@ -50,7 +50,6 @@
                     <div>
                         <button @click="openUpdateScreen(workout.workout_id, workout.exercises)" class="btn btn-amber btn-sm m-2">Update</button>
                         <button @click="deleteWorkout(workout.workout_id)" class="btn btn-danger btn-sm m-2">Delete</button>
-                        <button @click="console.log(workout)" class="btn btn-danger btn-sm m-2">Show</button>
                     </div>  
                 </div>
             </li>
