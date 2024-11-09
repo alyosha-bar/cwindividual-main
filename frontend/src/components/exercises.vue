@@ -15,13 +15,17 @@
             <div class="d-flex justify-content-around">
             <button
                 @click="openUpdateScreen(exercise.id)"
-                class="btn btn-sm btn-amber"
+                class="btn btn-sm btn-amber m-1"
             >
                 Update
             </button>
+            <button     
+                class="btn btn-outline-primary btn-sm m-1"
+                @click="openAddToWorkout(exercise.id)"
+                > Add to Workout </button>
             <button
                 @click="deleteExercise(exercise.id)"
-                class="btn btn-danger btn-sm"
+                class="btn btn-danger btn-sm m-1"
             >
                 Delete
             </button>
@@ -33,14 +37,17 @@
         <p>No exercises available.</p>
     </div>
     <exerciseUpdate :show="showModal" :id="selectedId" @close="showModal = false"></exerciseUpdate>
+    <addToWorkoutModal :show="addToWorkoutShow" :id="exId" :workouts="workouts" @close="addToWorkoutShow = false"></addToWorkoutModal>
 </template>
 
 <script>
 import exerciseUpdate from './exerciseUpdate.vue';
+import addToWorkoutModal from './addToWorkoutModal.vue';
 
 export default {
     components: {
-        exerciseUpdate
+        exerciseUpdate,
+        addToWorkoutModal
     },
     data() {
         return {
@@ -48,6 +55,9 @@ export default {
             isConfirmed: false,
             showModal: false,
             selectedId: -1,
+            addToWorkoutShow: false,
+            exId: null,
+            workouts: []
         };
     },
     methods: {
@@ -83,6 +93,21 @@ export default {
         openUpdateScreen(id) {
             this.showModal = true;
             this.selectedId = id;
+        },
+        openAddToWorkout(id) {
+            console.log(`Adding execise ${id} to a workout / workouts`)
+            
+            this.addToWorkoutShow = true
+            this.exId = id
+            // open a modal which allows to create an array of workouts
+            // to which the exercise will be added
+
+            // how to handle duplicates --> server side
+            
+            // pass as props:
+            // exercise id
+            // workouts list
+            // show Boolean
         }
     },
     async mounted() {
@@ -99,6 +124,21 @@ export default {
             console.log(this.exercises)
         } catch (error) {
             console.error("Error fetching exercises:", error);
+        }
+
+        try {
+            const workoutResponse = await fetch('http://localhost:8000/api/workouts');
+            if (!workoutResponse.ok) {
+                throw new Error(`HTTP error! status: ${workoutResponse.status}`);
+            }
+            
+            const workoutData = await workoutResponse.json();
+            console.log(workoutData)
+            this.workouts = workoutData || [];
+            console.log("YO")
+            console.log(this.workouts)
+        } catch (error) {
+            console.error("Error fetching workouts: ", error)
         }
     }
 }

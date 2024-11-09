@@ -20,37 +20,8 @@
                 <label for="date" class="form-label">Date:</label>
                 <input v-model="date" type="date" name="date" class="form-control">
               </div>
-              <!-- Exercise Search and Selection -->
-              <div class="mb-3">
-                <label class="form-label">Search Exercises:</label>
-                <input
-                  v-model="searchQuery"
-                  type="text"
-                  class="form-control"
-                  placeholder="Add or remove exercises"
-                />
-              </div>
-  
-              <!-- Filtered Exercises List -->
-              <ul class="list-group mb-3">
-                <li
-                  v-for="exercise in filteredExercises"
-                  :key="exercise.id"
-                  class="list-group-item d-flex justify-content-between align-items-center"
-                >
-                  {{ exercise.name }}
-                  <button
-                    type="button"
-                    class="btn btn-sm btn-outline-primary"
-                    @click="addExercise(exercise)"
-                  >
-                    Add
-                  </button>
-                </li>
-              </ul>
-              <button type="submit" class="btn btn-primary w-100">Add Workout</button>
+              <button type="submit" class="btn btn-primary w-100"> Update Workout </button>
             </form>
-            <button @click="console.log(selectedExercises)"> Show Selected Exercises </button>
           </div>
         </div>
       </div>
@@ -63,10 +34,7 @@
       return {
         name: "",
         description: "",
-        date: "",
-        exercises: [], 
-        allExercises: [], 
-        searchQuery: "",
+        date: ""
       };
     },
     props: {
@@ -78,30 +46,15 @@
         type: Number,
         required: true,
       },
-      selectedExercises: {
-        type: Array,
-        required: true,
-      },
-    },
-    computed: {
-      filteredExercises() {
-        return this.allExercises.filter((exercise) =>
-          exercise.name.toLowerCase().includes(this.searchQuery.toLowerCase())
-        );
-      },
     },
     methods: {
       closeModal() {
         this.$emit("close");
       },
-      addExercise(exercise) {
-        if (!this.exercises.includes(exercise.id)) {
-          this.exercises.push(exercise.id);
-          this.selectedExercises.push(exercise);
-        }
-      },
       async updateWorkout() {
         console.log("Updating Workout.");
+
+        console.log(this.date)
 
         // prepare body
         const body = {
@@ -109,8 +62,7 @@
             workoutId: this.id,
             name: this.name,
             description: this.description,
-            date: this.date,
-            exercises: this.localSelectedExercises,
+            date: this.date
         }
 
         // prepare request options
@@ -130,20 +82,6 @@
         const message = response.json()
         return message
       },
-    },
-    async mounted() {
-      try {
-        const exerciseResponse = await fetch("http://localhost:8000/api/exercises");
-        if (!exerciseResponse.ok) {
-          throw new Error(`HTTP error! status: ${exerciseResponse.status}`);
-        }
-  
-        const exerciseData = await exerciseResponse.json();
-        this.allExercises = exerciseData.exercises || [];
-        console.log(this.allExercises)
-      } catch (error) {
-        console.error("Error fetching exercises:", error);
-      }
     },
   };
   </script>

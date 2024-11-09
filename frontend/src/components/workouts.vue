@@ -100,6 +100,7 @@ export default {
             console.log(`Flipping completed status for id: ${id}`)
             
             const body = {
+                "full_flag": false,
                 "id": id,
             }
 
@@ -163,11 +164,14 @@ export default {
 
         },
         openUpdateScreen(id, exercises) {
-            // this.showModal = true;
-            // this.selectedWorkoutId = id;
-            // this.selectedExercises = exercises
+            this.showModal = true;
+            this.selectedWorkoutId = id;
+            this.selectedExercises = exercises
 
             console.log('Opening Update Screen')
+            console.log(id, exercises)
+
+
         },
         openRepsUpdate(workout_id, exId, exName, workoutName) {
             console.log(workout_id)

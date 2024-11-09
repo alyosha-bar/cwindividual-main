@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from .models import Plan, Workout, Exercise
+from datetime import datetime
 import json
 from django.shortcuts import get_object_or_404
 
@@ -89,13 +90,9 @@ def all_workouts(request):
             workout_id = data["body"].get("workoutId")
             name = data["body"].get("name")
             description = data["body"].get("description")
-            date_input = data.get("date")
-            date = date_input if date_input else None
-            exercises = data["body"].get("exercises")
+            date_str = data["body"].get("date") 
 
             workout = get_object_or_404(Workout, id=workout_id)
-
-            print(exercises)
 
             if name != "":
                 workout.name = name
@@ -105,15 +102,14 @@ def all_workouts(request):
                 workout.description = description
                 workout.save()
 
-            if date != None:
-                workout.date = date
-                workout.save()
+            print("Here: ")
+            print(date_str)
 
-            
-            for exercise in exercises:
-                e = get_object_or_404(Exercise, id=exercise['id'])
-                plan = Plan.objects.create(workout=workout, exercise=e, reps=10, sets=3)
-                plan.save()
+            if date_str != None:
+                print("In the if statement")
+                date_obj = datetime.strptime(date_str, "%Y-%m-%d").date()
+                workout.date = date_obj
+                workout.save()
 
             return JsonResponse({
                 "Message": "Workout updated."
@@ -123,6 +119,7 @@ def all_workouts(request):
 
 def all_exercises(request):
     if request.method == "GET":
+        print("Here.")
         exercises = Exercise.objects.all()
         exercise_data = [
             {
@@ -260,32 +257,58 @@ def updatePlan(request):
     if request.method == "PUT":
         # decode body
         data = json.loads(request.body)
-        workout_id = data["body"].get("workout_id")
-        exercise_id = data["body"].get("exercise_id")
-        newReps = data["body"].get("newReps")
-        newSets = data["body"].get("newSets")
+        rs_flag = data['body'].get('rs_flag')
 
-        # fetch workout by id
-        workout = get_object_or_404(Workout, id=workout_id)
-        
-        #fetch exerise by id
-        print(exercise_id)
-        exercise = get_object_or_404(Exercise, id=exercise_id)
+        if rs_flag == True:
+            workout_id = data["body"].get("workout_id")
+            exercise_id = data["body"].get("exercise_id")
+            newReps = data["body"].get("newReps")
+            newSets = data["body"].get("newSets")
 
-        # fetch plan
-        plan = Plan.objects.get(workout=workout, exercise=exercise)
+            # fetch workout by id
+            workout = get_object_or_404(Workout, id=workout_id)
+            
+            #fetch exerise by id
+            print(exercise_id)
+            exercise = get_object_or_404(Exercise, id=exercise_id)
 
-        if newReps != None:
-            plan.reps = newReps
-            plan.save()
+            # fetch plan
+            plan = Plan.objects.get(workout=workout, exercise=exercise)
 
-        if newSets != None:
-            plan.sets = newSets
-            plan.save()
+            if newReps != None:
+                plan.reps = newReps
+                plan.save()
 
-        return JsonResponse({
-            "Message": "Workout Plan Updated."
-        })
+            if newSets != None:
+                plan.sets = newSets
+                plan.save()
+
+            return JsonResponse({
+                "Message": "Workout Plan Updated."
+            })
+        else:
+            exercise_id = data["body"].get("exercise_id")
+            workouts = data["body"].get("workouts")
+
+            print(exercise_id)
+            print(workouts)
+
+            defaultReps=10
+            defaultSets=3
+
+            # fetch exercise by id
+            exercise = get_object_or_404(Exercise, id=exercise_id)
+
+            # add to all workout ids in the workouts list
+            # add by making a plan object and saving that
+            for workout in workouts:
+                w = get_object_or_404(Workout, id=workout['workout_id'])
+                plan = Plan.objects.create(workout=w, exercise=exercise, reps=defaultReps, sets=defaultSets)
+                plan.save()
+
+            return JsonResponse({
+                "message": "Added to workouts."
+            })
 
     if request.method == "DELETE":
         print("Deleting Exercise")

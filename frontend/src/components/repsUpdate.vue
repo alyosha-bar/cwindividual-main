@@ -68,6 +68,7 @@
 
         // prepare the body
         const body = {
+            rs_flag: true,
             workout_id: this.workout_id,
             exercise_id: this.ex_id,
             newReps: this.newReps,
