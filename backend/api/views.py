@@ -5,11 +5,6 @@ from datetime import datetime
 import json
 from django.shortcuts import get_object_or_404
 
-def test_api_view(request):
-    return JsonResponse({
-        'message': 'Good response!'
-    })
-
 
 def all_workouts(request):
 
@@ -52,7 +47,42 @@ def all_workouts(request):
         # Return JSON response
         return JsonResponse(workout_details, safe=False)
 
-    
+    if request.method == "POST":
+        # get data from req.body
+        print("Adding Data.")
+
+        if request.method == "POST":
+            data = json.loads(request.body)
+            name = data["body"].get("name")
+            description = data["body"].get("description")
+            date = data["body"].get("date")
+            exercises = data["body"].get("exercises") # contains ids of the associated exercises
+
+        print(name)
+        print(description)
+        print(date)
+        print(exercises)
+
+        # add into db
+
+        # create new Workout model
+        workout = Workout.objects.create(name=name, description=description, date=date)
+        # create new plan for every exercise
+        # loop through exercise,
+            # find the exercise corresponing to id
+            # use it to create a membership
+            # add default values for reps and sets
+        defaultReps=10
+        defaultSets=3
+        for id in exercises:
+            exercise = get_object_or_404(Exercise, id=id)
+            plan = Plan.objects.create(exercise=exercise, workout=workout, reps=defaultReps, sets=defaultSets)
+            plan.save()
+
+
+        return JsonResponse({
+            "message": "sup dude"
+        })    
 
     if request.method == "DELETE":
         print("Deleting workout")
@@ -68,8 +98,6 @@ def all_workouts(request):
             "message": "Deleted Workout."
         })
     
-    # need to have a PUT request for two things lol --> marking completed and editing information.
-    # make use of flag maybe to differentiate between use cases
     if request.method == "PUT":
         data = json.loads(request.body)
         
@@ -206,46 +234,6 @@ def all_exercises(request):
         return JsonResponse({
             "message": "exercise added."
         })
-
-
-# move to POST in all workouts
-def create_workout(request):
-    # get data from req.body
-    print("Adding Data.")
-
-    if request.method == "POST":
-        data = json.loads(request.body)
-        name = data["body"].get("name")
-        description = data["body"].get("description")
-        date = data["body"].get("date")
-        exercises = data["body"].get("exercises") # contains ids of the associated exercises
-
-    print(name)
-    print(description)
-    print(date)
-    print(exercises)
-
-    # add into db
-
-    # create new Workout model
-    workout = Workout.objects.create(name=name, description=description, date=date)
-    # create new plan for every exercise
-    # loop through exercise,
-        # find the exercise corresponing to id
-        # use it to create a membership
-        # add default values for reps and sets
-    defaultReps=10
-    defaultSets=3
-    for id in exercises:
-        exercise = get_object_or_404(Exercise, id=id)
-        plan = Plan.objects.create(exercise=exercise, workout=workout, reps=defaultReps, sets=defaultSets)
-        plan.save()
-
-
-    return JsonResponse({
-        "message": "sup dude"
-    })
-
 
 def updatePlan(request):
 

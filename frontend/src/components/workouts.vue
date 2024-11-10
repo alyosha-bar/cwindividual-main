@@ -16,6 +16,7 @@
                                 <div>
                                     <strong>{{ exercise.name }}</strong> - {{ exercise.description }}
                                     <p class="mb-1"><strong>Difficulty:</strong> {{ exercise.difficulty_rating }}</p>
+                                    <p class="mb-1"> <strong>Weight:</strong> {{ exercise.weight}}</p>
                                 </div>
                                 <div>   
                                     <div class="text-end px-4 py-2 rounded hover-effect" @click="openRepsUpdate(workout.workout_id, exercise.id, exercise.name, workout.name)">

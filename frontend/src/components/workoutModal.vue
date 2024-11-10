@@ -135,7 +135,7 @@
                     body: JSON.stringify({ body })
                 };
 
-                const response = await fetch('http://localhost:8000/api/addworkout', requestOptions);
+                const response = await fetch('http://localhost:8000/api/workouts', requestOptions);
 
                 if (!response.ok) {
                     throw new Error("Error occurred.");

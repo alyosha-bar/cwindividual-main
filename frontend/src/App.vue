@@ -1,7 +1,7 @@
 <template>
     <div class="container pt-3">
         <div>
-            <h2 class="text-center my-4"> Workout Buddy </h2>
+            <h2 class="text-center my-4"> Aleksej's Workout Buddy </h2>
 
             <!-- Tabs Navigation -->
             <ul class="nav nav-tabs" role="tablist">
