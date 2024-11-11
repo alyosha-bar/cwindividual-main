@@ -106,11 +106,6 @@
             },
         },   
         methods: {
-            handleExerciseAdded(exercise) {
-                // Handle the new exercise data
-                console.log("Exercise Added:", exercise);
-                // For example, add it to a list of exercises or send it to the server
-            },
             addExercise(exercise) {
                 if (!this.exercises.includes(exercise.id)) {
                     this.exercises.push(exercise.id);

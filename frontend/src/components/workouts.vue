@@ -113,12 +113,11 @@ export default {
             try {
                 const response = await fetch('http://localhost:8000/api/workouts', requestOptions);
 
-                // Check if the response is successful (status code 200–299)
                 if (!response.ok) {
                     throw new Error(`HTTP error! Status: ${response.status}`);
                 }
 
-                const data = await response.json(); // Parse JSON response
+                const data = await response.json();
 
                 console.log("Completed status updated:", data);
 
@@ -130,14 +129,20 @@ export default {
 
                 
 
-                return data;  // Return the data for further processing if needed
+                return data;
             } catch (error) {
                 console.error("Error updating completed status:", error);
-                // Handle errors or show error notification to the user if needed
             }
 
         },
         async deleteExercise(workout_id, exercise_id) {
+            
+            // confirm delete
+            const isConfirmed = confirm("Are you sure you want to delete this exercise from this workout?");
+
+            if (!isConfirmed) {
+                return   
+            }
 
             console.log(exercise_id)
 
@@ -188,13 +193,10 @@ export default {
             const isConfirmed = confirm("Are you sure you want to delete this workout?");
 
             if (!isConfirmed) {
-                return
-                
+                return   
             }
             
             // send request to server to delete the workout with designated id
-            console.log("Deleting")
-
             const body = {
                 "id": id
             };
@@ -210,7 +212,7 @@ export default {
                 throw new Error("Could not delete workout!")
             }
             const message = response.json().message
-
+            return message;
         }
     },
     async mounted() {

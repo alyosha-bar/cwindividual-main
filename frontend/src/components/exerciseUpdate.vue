@@ -54,7 +54,6 @@
     },
     methods: {
       closeModal() {
-        // Emit a close event to notify the parent to hide the modal
         this.$emit("close");
       },
       async updateExercise() {
@@ -79,14 +78,13 @@
         if (!response.ok) {
             throw new Error("Error occurred.");
         }
-
+        
+        // handle response
         await response.json();
         this.exName = "";
         this.exDesc = "";
         this.exWeight = undefined;
         this.exDiff = undefined;
-
-        // handle response
       }
     },
   };

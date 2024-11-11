@@ -99,15 +99,6 @@ export default {
             
             this.addToWorkoutShow = true
             this.exId = id
-            // open a modal which allows to create an array of workouts
-            // to which the exercise will be added
-
-            // how to handle duplicates --> server side
-            
-            // pass as props:
-            // exercise id
-            // workouts list
-            // show Boolean
         }
     },
     async mounted() {

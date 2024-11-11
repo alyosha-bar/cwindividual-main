@@ -57,7 +57,6 @@
     },
     methods: {
       closeModal() {
-        // Emit a close event to notify the parent to hide the modal
         this.$emit("close");
       },
       async updatePlan() {

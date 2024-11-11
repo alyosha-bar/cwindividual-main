@@ -51,7 +51,7 @@ export default {
     },
     data() {
         return {
-            activeTab: 1, // Set the default active tab to Tab 1
+            activeTab: 1,
         };
     },
 };

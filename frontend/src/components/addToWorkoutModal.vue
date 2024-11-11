@@ -20,7 +20,6 @@
                 </ul>
                 </div>
 
-                <!-- Display selected workouts -->
                 <div>
                 <h3>Selected Workouts</h3>
                 <ul class="list-group mb-3">
@@ -64,13 +63,11 @@
     },
     methods: {
         addWorkout(workout) {
-            // Add workout to selectedWorkouts if it isn't already added
             if (!this.selectedWorkouts.includes(workout)) {
                 this.selectedWorkouts.push(workout);
             }
         },
         removeWorkout(workout) {
-            // Remove workout from selectedWorkouts
             this.selectedWorkouts = this.selectedWorkouts.filter(
                 (w) => w !== workout
             );
