@@ -4,59 +4,32 @@ from .models import Plan, Workout, Exercise
 from datetime import datetime
 import json
 from django.shortcuts import get_object_or_404
-
+from .utils import get_all_exercises, get_all_workouts
 
 def all_workouts(request):
+    """
+    This is a view function for the /api/workouts route.
+    It handles all requests based on the request.method.
+    """
 
     if request.method == "GET":
-        # Retrieve all workouts
+        # get all workouts
         workouts = Workout.objects.all()
         
-        # Build a list to hold workout data
-        workout_details = []
+        # use the util function
+        workout_details = get_all_workouts(workouts)
         
-        # Loop through each workout to collect details
-        for workout in workouts:
-            # Query Plan to get each exercise linked to this workout
-            plans = Plan.objects.filter(workout=workout).select_related('exercise')
-            
-            # Collect each exercise's details from Plan and Exercise
-            exercises_with_details = [
-                {
-                    "id": plan.exercise.id,
-                    "name": plan.exercise.name,
-                    "description": plan.exercise.description,
-                    "difficulty_rating": plan.exercise.difficuly_rating,
-                    "weight": plan.exercise.weight,
-                    "reps": plan.reps,
-                    "sets": plan.sets
-                }
-                for plan in plans
-            ]
-            
-            # Add workout data and its exercises to the list
-            workout_details.append({
-                "workout_id": workout.id,
-                "workout_name": workout.name,
-                "workout_description": workout.description,
-                "date": workout.date.isoformat(),  # Ensure date is JSON serializable
-                "completed": workout.completed,
-                "exercises": exercises_with_details
-            })
-        
-        # Return JSON response
         return JsonResponse(workout_details, safe=False)
 
     if request.method == "POST":
         # get data from req.body
         print("Adding Data.")
 
-        if request.method == "POST":
-            data = json.loads(request.body)
-            name = data["body"].get("name")
-            description = data["body"].get("description")
-            date = data["body"].get("date")
-            exercises = data["body"].get("exercises") # contains ids of the associated exercises
+        data = json.loads(request.body)
+        name = data["body"].get("name")
+        description = data["body"].get("description")
+        date = data["body"].get("date")
+        exercises = data["body"].get("selectedExercises")
 
         print(name)
         print(description)
@@ -67,22 +40,17 @@ def all_workouts(request):
 
         # create new Workout model
         workout = Workout.objects.create(name=name, description=description, date=date)
-        # create new plan for every exercise
-        # loop through exercise,
-            # find the exercise corresponing to id
-            # use it to create a membership
-            # add default values for reps and sets
         defaultReps=10
         defaultSets=3
-        for id in exercises:
-            exercise = get_object_or_404(Exercise, id=id)
+        for ex in exercises:
+            exercise = get_object_or_404(Exercise, id=ex.get('id'))
             plan = Plan.objects.create(exercise=exercise, workout=workout, reps=defaultReps, sets=defaultSets)
             plan.save()
 
+        workouts = Workout.objects.all()
+        workout_details = get_all_workouts(workouts)
 
-        return JsonResponse({
-            "message": "sup dude"
-        })    
+        return JsonResponse(workout_details, safe=False)    
 
     if request.method == "DELETE":
         print("Deleting workout")
@@ -94,28 +62,30 @@ def all_workouts(request):
         workout = get_object_or_404(Workout, id=workout_id)
         workout.delete()
 
-        return JsonResponse({
-            "message": "Deleted Workout."
-        })
+        workouts = Workout.objects.all()
+        workout_details = get_all_workouts(workouts)
+
+
+        return JsonResponse(workout_details, safe=False)
     
     if request.method == "PUT":
         data = json.loads(request.body)
         
+        print(data)
+
         if data["body"].get("full_flag") == False:
             workout_id = data["body"].get("id")
-            # Fetch the workout instance by its ID
+            # get specific workout
             workout = get_object_or_404(Workout, id=workout_id)
             
-            # Flip the completed status
+            # flip the completed status boolean value
             workout.completed = not workout.completed
-            
-            # Save the changes to the database
             workout.save()
-            
-            # Return a JSON response with the new status
+
+            # return new status for reactivity
             return JsonResponse({"completed": workout.completed})
         else:
-            workout_id = data["body"].get("workoutId")
+            workout_id = data["body"].get("id")
             name = data["body"].get("name")
             description = data["body"].get("description")
             date_str = data["body"].get("date") 
@@ -130,38 +100,27 @@ def all_workouts(request):
                 workout.description = description
                 workout.save()
 
-            print("Here: ")
-            print(date_str)
-
-            if date_str != None:
-                print("In the if statement")
-                date_obj = datetime.strptime(date_str, "%Y-%m-%d").date()
-                workout.date = date_obj
-                workout.save()
+            workouts = Workout.objects.all()
+            workout_details = get_all_workouts(workouts)
 
             return JsonResponse({
-                "Message": "Workout updated."
+                "workouts": workout_details
             })
 
-
-
 def all_exercises(request):
+    """
+    This is a view function for the /api/exercises route.
+    It handles all requests based on the request.method.
+    """
+    
     if request.method == "GET":
         print("Here.")
         exercises = Exercise.objects.all()
-        exercise_data = [
-            {
-                "id": ex.id, 
-                "name": ex.name,
-                "description": ex.description,
-                "weight": ex.weight,
-                "level": ex.difficuly_rating
-                } 
-            for ex in exercises]
-        return JsonResponse({"exercises": exercise_data})
-    
 
-    
+        exercise_data = get_all_exercises(exercises)
+
+        return JsonResponse(exercise_data, safe=False)
+     
     if request.method == "DELETE":
         print("Deleting Exercise")
 
@@ -172,18 +131,20 @@ def all_exercises(request):
         exercise = get_object_or_404(Exercise, id=exercise_id)
         exercise.delete()
 
-        return JsonResponse({"message": "Exercise Deleted."})
-    
+        exercises = Exercise.objects.all()
+        exercise_data = get_all_exercises(exercises)
 
+        return JsonResponse(exercise_data, safe=False)
+    
     if request.method == "PUT":
         print("Updating Exercise")
         
         data = json.loads(request.body)
         id = data["body"].get("id")
-        name = data["body"].get("name")
-        description = data["body"].get("description")
-        weight = data["body"].get("weight")
-        diff = data["body"].get("difficulty")
+        name = data["body"].get("exName")
+        description = data["body"].get("exDesc")
+        weight = data["body"].get("exWeight")
+        diff = data["body"].get("exDiff")
 
 
         #debug
@@ -215,32 +176,36 @@ def all_exercises(request):
             exercise.difficuly_rating = diff
             exercise.save()
 
-        return JsonResponse({
-            "message": "Updated Exercise"
-        })
+
+        # return all exercises
+        exercises = Exercise.objects.all()
+        exercise_data = get_all_exercises(exercises)
+
+        return JsonResponse(exercise_data, safe=False)
     
-
-
     if request.method == "POST":
         data = json.loads(request.body)
-        name = data["body"].get("name")
-        description = data["body"].get("description")
-        weight = data["body"].get("weight")
-        diff = data["body"].get("difficulty")
+        name = data["body"].get("exName")
+        description = data["body"].get("exDesc")
+        weight = data["body"].get("exWeight")
+        diff = data["body"].get("exDiff")
 
         # add into db - exercises model
         exercise = Exercise(name=name, description=description, weight=weight, difficuly_rating=Exercise.DifficultyLevel.MEDIUM)
         exercise.save()
-        return JsonResponse({
-            "message": "exercise added."
-        })
 
-def updatePlan(request):
 
-    if request.method == "GET":
-        return JsonResponse({
-            "message": "YO"
-        })
+        # return all exercises
+        exercises = Exercise.objects.all()
+        exercise_data = get_all_exercises(exercises)
+
+        return JsonResponse(exercise_data, safe=False)
+
+def update_plan(request):
+    """
+    This is a view function for the /api/plan route.
+    It handles all requests based on the request.method.
+    """
 
     if request.method == "PUT":
         # decode body
@@ -271,10 +236,14 @@ def updatePlan(request):
                 plan.sets = newSets
                 plan.save()
 
+            workouts = Workout.objects.all()
+            workout_details = get_all_workouts(workouts)
+
             return JsonResponse({
-                "Message": "Workout Plan Updated."
+                "workouts": workout_details
             })
         else:
+            # adding an exercise into a workout
             exercise_id = data["body"].get("exercise_id")
             workouts = data["body"].get("workouts")
 
@@ -294,8 +263,11 @@ def updatePlan(request):
                 plan = Plan.objects.create(workout=w, exercise=exercise, reps=defaultReps, sets=defaultSets)
                 plan.save()
 
+            workouts = Workout.objects.all()
+            workout_details = get_all_workouts(workouts)
+
             return JsonResponse({
-                "message": "Added to workouts."
+                "workouts": workout_details
             })
 
     if request.method == "DELETE":
@@ -310,6 +282,7 @@ def updatePlan(request):
         plan = Plan.objects.filter(workout_id=workout_id, exercise_id=exercise_id)
         plan.delete()
 
-        return JsonResponse({
-            "message": "Deleted Successfully."
-        })
+        workouts = Workout.objects.all()
+        workout_details = get_all_workouts(workouts)
+
+        return JsonResponse(workout_details, safe=False)

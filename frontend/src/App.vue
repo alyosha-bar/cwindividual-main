@@ -18,17 +18,11 @@
                 <div v-if="activeTab === 1" class="tab-pane fade show active">
                     <h3> Workouts List </h3>
                     <workouts></workouts>
-                    <div class="d-flex justify-content-center gap-3 py-3">
-                        <workoutModal></workoutModal>
-                    </div>
                 </div>
 
                 <div v-if="activeTab === 2" class="tab-pane fade show active">
                     <h3> Exercises List </h3>
                     <exercises></exercises>
-                    <div class="d-flex justify-content-center gap-3 py-3">
-                        <exerciseModal></exerciseModal>
-                    </div>
                 </div>
             </div>
         </div>

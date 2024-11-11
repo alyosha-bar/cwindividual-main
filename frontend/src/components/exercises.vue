@@ -36,18 +36,30 @@
         <div v-else>
         <p>No exercises available.</p>
     </div>
-    <exerciseUpdate :show="showModal" :id="selectedId" @close="showModal = false"></exerciseUpdate>
+    
+    <div class="d-flex justify-content-center gap-3 py-3">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exerciseModal"> Add Exercise </button>
+        <exerciseModal
+        @createExercise="createExercise"></exerciseModal>
+    </div>
+    <exerciseUpdate 
+    :show="showModal" 
+    :id="selectedId" 
+    @close="showModal = false"
+    @updateExercise="updateExercise"></exerciseUpdate>
     <addToWorkoutModal :show="addToWorkoutShow" :id="exId" :workouts="workouts" @close="addToWorkoutShow = false"></addToWorkoutModal>
 </template>
 
 <script>
 import exerciseUpdate from './exerciseUpdate.vue';
 import addToWorkoutModal from './addToWorkoutModal.vue';
+import exerciseModal from './exerciseModal.vue';
 
 export default {
     components: {
         exerciseUpdate,
-        addToWorkoutModal
+        addToWorkoutModal,
+        exerciseModal
     },
     data() {
         return {
@@ -67,8 +79,9 @@ export default {
 
             if (!isConfirmed) {
                 return
-                
             }
+
+            console.log(id)
             
             // send request to server to delete the workout with designated id
             console.log("Deleting")
@@ -87,7 +100,9 @@ export default {
             if (!response.ok) {
                 throw new Error("Could not delete workout!")
             }
-            const message = response.json().message
+            const data = await response.json()
+            console.log(data)
+            this.exercises = data
 
         },
         openUpdateScreen(id) {
@@ -99,6 +114,66 @@ export default {
             
             this.addToWorkoutShow = true
             this.exId = id
+        },
+        async updateExercise(body, id) {
+            // prepare body with updated values
+            body.id = id
+
+
+            console.log(body)
+
+            // prepare request options
+            const requestOptions = {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ body })
+            };
+
+            // make fetch request 
+            const response = await fetch('http://localhost:8000/api/exercises', requestOptions);
+
+            if (!response.ok) {
+                throw new Error("Error occurred.");
+            }
+            
+
+
+            // handle response
+            const data = await response.json();
+
+            // close modal
+            this.showModal = false;
+
+            // handle response object
+            console.log(data)
+            this.exercises = data
+
+            this.exName = "";
+            this.exDesc = "";
+            this.exWeight = undefined;
+            this.exDiff = undefined;
+        },
+        async createExercise(body) {
+
+            const requestOptions = {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ body })
+            };
+
+            const response = await fetch('http://localhost:8000/api/exercises', requestOptions);
+
+            if (!response.ok) {
+                throw new Error("Error occurred.");
+            }
+
+            const data = await response.json();
+            this.exercises = data
+            
+            this.exName = "";
+            this.exDesc = "";
+            this.exWeight = undefined;
+            this.exDiff = undefined;
         }
     },
     async mounted() {
@@ -110,7 +185,7 @@ export default {
             
             const exerciseData = await exerciseResponse.json();
             console.log(exerciseData)
-            this.exercises = exerciseData.exercises || [];
+            this.exercises = exerciseData || [];
             console.log("YO")
             console.log(this.exercises)
         } catch (error) {

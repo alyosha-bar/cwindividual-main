@@ -59,28 +59,37 @@
     <div v-else>
         <p>No workouts available.</p>
     </div>
+    <div class="d-flex justify-content-center gap-3 py-3">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">Add Workout</button>
+        <workoutModal
+        @createWorkout="createWorkout"></workoutModal>
+    </div>
     <workoutUpdate 
         :show="showModal" 
         :id="selectedWorkoutId"
         :selectedExercises="selectedExercises" 
-        @close="showModal = false"></workoutUpdate>
+        @close="showModal = false"
+        @updateWorkout="updateWorkout"></workoutUpdate>
     <repsUpdate 
         :show="showRepsModal" 
         :workout_id="selectId" 
         :ex_id="exId" 
         :exName="exName"
         :workoutName="workoutName"
-        @close="showRepsModal = false"></repsUpdate>
+        @close="showRepsModal = false"
+        @updatePlan="updateReps"></repsUpdate>
 </template>
 
 <script>
 import workoutUpdate from './workoutUpdate.vue';
 import repsUpdate from './repsUpdate.vue';
+import workoutModal from './workoutModal.vue';
 
 export default {
     components: {
         workoutUpdate,
-        repsUpdate
+        repsUpdate,
+        workoutModal
     },
     data() {
         return {
@@ -164,8 +173,8 @@ export default {
                 throw new Error("Error Deleting Exercise")
             }
 
-            const message = response.json()
-            return message
+            const data = await response.json()
+            this.workouts = data
 
         },
         openUpdateScreen(id, exercises) {
@@ -211,16 +220,105 @@ export default {
             if (!response.ok) {
                 throw new Error("Could not delete workout!")
             }
-            const message = response.json().message
-            return message;
-        }
+            const data = await response.json()
+            this.workouts = data
+        },
+        async updateWorkout(body, id) {
+            console.log("Updating Workout.");
+            
+            body.id = id
+
+            console.log(body.date)
+
+            // prepare request options
+            const requestOptions = {
+                method: "PUT",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({body})
+            }
+
+            // make fetch request
+            const response = await fetch("http://localhost:8000/api/workouts", requestOptions)
+
+            if (!response.ok) {
+                throw new Error("Error updating workout")
+            }
+            
+            // close workout update modal
+            this.showModal = false;
+            
+            
+            // get workouts as the return
+            const data = await response.json()
+            const workouts = data.workouts
+
+            // replace workouts array
+            this.workouts = workouts
+            
+            // add to workouts
+            return "Workout updated."
+        },
+        async updateReps(body, workout_id, ex_id) {
+            console.log("updating plan")
+
+            console.log(ex_id)
+            console.log(workout_id)
+
+            // prepare the body
+            body.workout_id = workout_id
+            body.exercise_id = ex_id
+            
+            // prepare the request options
+            const requestOptions = {
+                method: "PUT",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({body})
+            }
+
+            // fetch request
+            const response = await fetch("http://localhost:8000/api/plan", requestOptions)
+
+            if (!response.ok) {
+                throw new Error("Error occured.")
+            }
+
+
+            const data = await response.json()
+
+            this.workouts = data.workouts
+
+            this.showRepsModal = false
+            this.workout_id = null
+            this.exercise_id = null
+            this.newReps = null
+            this.newSets = null
+        },
+        async createWorkout(body) {
+            console.log(body)
+
+            const requestOptions = {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ body })
+            };
+
+            const response = await fetch('http://localhost:8000/api/workouts', requestOptions);
+
+            if (!response.ok) {
+                throw new Error("Error occurred.");
+            }
+
+            const data = await response.json();
+            this.workouts = data
+
+            this.name = "";
+            this.description = "";
+            this.date = "";
+            this.exercises = [];
+            this.selectedExercises = [];
+        },
     },
     async mounted() {
-
-        // must fetch better --> all workouts with exercises - DONE
-
-        // pass into workoutUpdate as props
-
         try {
             const workoutResponse = await fetch('http://localhost:8000/api/workouts');
             if (!workoutResponse.ok) throw new Error(`HTTP error! status: ${workoutResponse.status}`);

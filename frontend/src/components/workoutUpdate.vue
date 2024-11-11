@@ -7,18 +7,18 @@
             <button type="button" class="btn-close" @click="closeModal"></button>
           </div>
           <div class="modal-body">
-            <form @submit.prevent="updateWorkout" class="container p-4 border rounded shadow-sm">
+            <form @submit.prevent="$emit('updateWorkout', body, id)" class="container p-4 border rounded shadow-sm">
               <div class="mb-3">
                 <label for="name" class="form-label">Name:</label>
-                <input v-model="name" type="text" name="name" class="form-control" placeholder="Updated name / Leave blank">
+                <input v-model="body.name" type="text" name="name" class="form-control" placeholder="Updated name / Leave blank">
               </div>
               <div class="mb-3">
                 <label for="desc" class="form-label">Description:</label>
-                <textarea v-model="description" name="desc" class="form-control" rows="3" placeholder="Updated description / Leave blank"></textarea>
+                <textarea v-model="body.description" name="desc" class="form-control" rows="3" placeholder="Updated description / Leave blank"></textarea>
               </div>
               <div class="mb-3">
                 <label for="date" class="form-label">Date:</label>
-                <input v-model="date" type="date" name="date" class="form-control">
+                <input v-mode l="body.date" type="date" name="date" class="form-control">
               </div>
               <button type="submit" class="btn btn-primary w-100"> Update Workout </button>
             </form>
@@ -32,9 +32,13 @@
   export default {
     data() {
       return {
-        name: "",
-        description: "",
-        date: ""
+        body: {
+          full_flag: true,
+          id: null,
+          name: "",
+          description: "",
+          date: ""
+        }
       };
     },
     props: {
@@ -50,37 +54,6 @@
     methods: {
       closeModal() {
         this.$emit("close");
-      },
-      async updateWorkout() {
-        console.log("Updating Workout.");
-
-        console.log(this.date)
-
-        // prepare body
-        const body = {
-            full_flag: true, 
-            workoutId: this.id,
-            name: this.name,
-            description: this.description,
-            date: this.date
-        }
-
-        // prepare request options
-        const requestOptions = {
-            method: "PUT",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({body})
-        }
-
-        // make fetch request
-        const response = await fetch("http://localhost:8000/api/workouts", requestOptions)
-
-        if (!response.ok) {
-            throw new Error("Error updating workout")
-        }
-
-        const message = response.json()
-        return message
       },
     },
   };
