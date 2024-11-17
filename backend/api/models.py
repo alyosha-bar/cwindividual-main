@@ -3,6 +3,10 @@ from django.db import models
 # Create your models here.
 
 class Exercise(models.Model):
+    '''
+    This is the Exercise model class which defines the
+    structure of the Exercise model.
+    '''
     name = models.CharField(max_length=128)
     description = models.TextField()
 
@@ -17,6 +21,10 @@ class Exercise(models.Model):
 
 
 class Workout(models.Model):
+    '''
+    This is the Workout model class which defines the
+    structure of the Workout model.
+    '''
     name = models.CharField(max_length=128)
     description = models.TextField()
     date = models.DateField()
@@ -25,6 +33,10 @@ class Workout(models.Model):
 
 
 class Plan(models.Model):
+    '''
+    This is the Plan model class which defines the
+    structure of the Plan model.
+    '''
     exercise = models.ForeignKey(Exercise, on_delete=models.CASCADE)
     workout = models.ForeignKey(Workout, on_delete=models.CASCADE)
     reps = models.IntegerField()

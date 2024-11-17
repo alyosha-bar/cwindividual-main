@@ -1,7 +1,7 @@
 <template>
     <div class="container pt-3">
         <div>
-            <h2 class="text-center my-4"> Workout Buddy </h2>
+            <h2 class="text-center my-4"> Aleksej's Workout Buddy </h2>
 
             <!-- Tabs Navigation -->
             <ul class="nav nav-tabs" role="tablist">
@@ -18,17 +18,11 @@
                 <div v-if="activeTab === 1" class="tab-pane fade show active">
                     <h3> Workouts List </h3>
                     <workouts></workouts>
-                    <div class="d-flex justify-content-center gap-3 py-3">
-                        <workoutModal></workoutModal>
-                    </div>
                 </div>
 
                 <div v-if="activeTab === 2" class="tab-pane fade show active">
                     <h3> Exercises List </h3>
                     <exercises></exercises>
-                    <div class="d-flex justify-content-center gap-3 py-3">
-                        <exerciseModal></exerciseModal>
-                    </div>
                 </div>
             </div>
         </div>
@@ -51,7 +45,7 @@ export default {
     },
     data() {
         return {
-            activeTab: 1, // Set the default active tab to Tab 1
+            activeTab: 1,
         };
     },
 };

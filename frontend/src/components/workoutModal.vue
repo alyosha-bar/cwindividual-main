@@ -1,6 +1,4 @@
 <template>
-    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">Add Workout</button>
-
     <!-- Workout Modal -->
     <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
             <div class="modal-dialog">
@@ -10,18 +8,19 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form @submit.prevent="createWorkout" class="container p-4 border rounded shadow-sm">
+                    <button @click="console.log(body)"> WTF </button>
+                    <form @submit.prevent="$emit('createWorkout', body)" class="container p-4 border rounded shadow-sm">
                         <div class="mb-3">
                             <label for="name" class="form-label">Name:</label>
-                            <input v-model="name" type="text" name="name" class="form-control" placeholder="Enter workout name" required>
+                            <input v-model="body.name" type="text" name="name" class="form-control" placeholder="Enter workout name" required>
                         </div>
                         <div class="mb-3">
                             <label for="desc" class="form-label">Description:</label>
-                            <textarea v-model="description" name="desc" class="form-control" rows="3" placeholder="Enter workout description" required></textarea>
+                            <textarea v-model="body.description" name="desc" class="form-control" rows="3" placeholder="Enter workout description" required></textarea>
                         </div>
                         <div class="mb-3">
                             <label for="date" class="form-label">Date:</label>
-                            <input v-model="date" type="date" name="date" class="form-control" required>
+                            <input v-model="body.date" type="date" name="date" class="form-control" required>
                         </div>
                        <!-- Exercise Search and Selection -->
                             <div class="mb-3">
@@ -37,7 +36,7 @@
                             <!-- Filtered Exercises List -->
                             <ul class="list-group mb-3">
                                 <li
-                                    v-for="exercise in filteredExercises"
+                                    v-for="exercise in allExercises"
                                     :key="exercise.id"
                                     class="list-group-item d-flex justify-content-between align-items-center"
                                 >
@@ -57,7 +56,7 @@
                                 <label class="form-label">Selected Exercises:</label>
                                 <ul class="list-group">
                                     <li
-                                        v-for="exercise in selectedExercises"
+                                        v-for="exercise in body.selectedExercises"
                                         :key="exercise.id"
                                         class="list-group-item d-flex justify-content-between align-items-center"
                                     >
@@ -77,7 +76,6 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button @click="console.log(exercises)"> All </button>
                 </div>
                 </div>
             </div>
@@ -90,13 +88,15 @@
     export default {
         data() {
             return {
-                name: "",
-                description: "",
-                date: "",
+                body: {
+                    name: "",
+                    description: "",
+                    date: "",
+                    selectedExercises: []
+                },
                 exercises: [],
                 allExercises: [],
                 searchQuery: "",
-                selectedExercises: []
             }
         },
         computed: {
@@ -108,46 +108,17 @@
         },   
         methods: {
             handleExerciseAdded(exercise) {
-                // Handle the new exercise data
                 console.log("Exercise Added:", exercise);
-                // For example, add it to a list of exercises or send it to the server
             },
             addExercise(exercise) {
                 if (!this.exercises.includes(exercise.id)) {
                     this.exercises.push(exercise.id);
-                    this.selectedExercises.push(exercise);
+                    this.body.selectedExercises.push(exercise);
                 }
             },
             removeExercise(exerciseId) {
                 this.exercises = this.exercises.filter(id => id !== exerciseId);
-                this.selectedExercises = this.selectedExercises.filter(ex => ex.id !== exerciseId);
-            },
-            async createWorkout() {
-                const body = {
-                    name: this.name,
-                    description: this.description,
-                    date: this.date,
-                    exercises: this.exercises
-                };
-
-                const requestOptions = {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ body })
-                };
-
-                const response = await fetch('http://localhost:8000/api/addworkout', requestOptions);
-
-                if (!response.ok) {
-                    throw new Error("Error occurred.");
-                }
-
-                await response.json();
-                this.name = "";
-                this.description = "";
-                this.date = "";
-                this.exercises = [];
-                this.selectedExercises = [];
+                this.body.selectedExercises = this.body.selectedExercises.filter(ex => ex.id !== exerciseId);
             },
         },
         async mounted() {
@@ -159,7 +130,7 @@
                 
                 const exerciseData = await exerciseResponse.json();
                 console.log(exerciseData)
-                this.allExercises = exerciseData.exercises || [];
+                this.allExercises = exerciseData || [];
                 console.log(this.allExercises)
             } catch (error) {
                 console.error("Error fetching exercises:", error);
